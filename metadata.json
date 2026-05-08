@@ -1,0 +1,5 @@
+{
+  "name": "SafeRide: Driver Verification & Passenger Safety",
+  "description": "A comprehensive system for driver registration, verification, and passenger safety featuring QR-based identification and emergency alerts.",
+  "requestFramePermissions": ["camera", "geolocation"]
+}

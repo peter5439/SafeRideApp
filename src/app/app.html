@@ -1,0 +1,8 @@
+@if (authService.loading()) {
+  <div class="min-h-screen flex flex-col items-center justify-center bg-slate-50">
+    <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+    <p class="font-display font-bold text-slate-400 uppercase tracking-widest text-xs">SafeRide Initializing</p>
+  </div>
+} @else {
+  <router-outlet />
+}

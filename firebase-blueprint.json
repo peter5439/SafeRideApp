@@ -1,0 +1,187 @@
+{
+  "entities": {
+    "Passenger": {
+      "title": "Passenger",
+      "description": "Passenger profile",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["passenger"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Administrator profile",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Driver": {
+      "title": "Driver",
+      "description": "Driver profile and verification status",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["driver"] },
+        "firstName": { "type": "string" },
+        "lastName": { "type": "string" },
+        "phoneNumber": { "type": "string" },
+        "residentialAddress": { "type": "string" },
+        "licenseNumber": { "type": "string" },
+        "nationalId": { "type": "string" },
+        "profilePhotoUrl": { "type": "string" },
+        "verificationStatus": { "type": "string", "enum": ["pending", "verified", "rejected"] },
+        "vehicleId": { "type": "string" },
+        "qrCode": { "type": "string" },
+        "rating": { "type": "number", "description": "Average rating score" },
+        "ratingCount": { "type": "number", "description": "Total number of ratings" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role", "verificationStatus"]
+    },
+    "Vehicle": {
+      "title": "Vehicle",
+      "description": "Vehicle details associated with a driver",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "driverId": { "type": "string" },
+        "plateNumber": { "type": "string" },
+        "model": { "type": "string" },
+        "color": { "type": "string" }
+      },
+      "required": ["id", "driverId", "plateNumber"]
+    },
+    "Trip": {
+      "title": "Trip",
+      "description": "Record of a passenger scanning a driver's QR code",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "passengerId": { "type": "string" },
+        "driverId": { "type": "string" },
+        "vehicleId": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "completed"] },
+        "ratingId": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "location": {
+          "type": "object",
+          "properties": {
+            "latitude": { "type": "number" },
+            "longitude": { "type": "number" }
+          }
+        },
+        "currentLocation": {
+          "type": "object",
+          "properties": {
+            "latitude": { "type": "number" },
+            "longitude": { "type": "number" }
+          }
+        }
+      },
+      "required": ["id", "passengerId", "driverId", "timestamp"]
+    },
+    "Incident": {
+      "title": "Incident",
+      "description": "Safety incident reports",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "tripId": { "type": "string" },
+        "reporterId": { "type": "string" },
+        "driverId": { "type": "string" },
+        "description": { "type": "string" },
+        "severity": { "type": "string", "enum": ["low", "medium", "high"] },
+        "status": { "type": "string", "enum": ["open", "investigating", "resolved"] },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "reporterId", "driverId", "description", "timestamp"]
+    },
+    "EmergencyContact": {
+      "title": "Emergency Contact",
+      "description": "Trusted contacts for passengers",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "phoneNumber": { "type": "string" },
+        "email": { "type": "string", "format": "email" }
+      },
+      "required": ["id", "userId", "name", "phoneNumber", "email"]
+    },
+    "Mail": {
+      "title": "Mail",
+      "description": "Email notification for Trigger Email extension",
+      "type": "object",
+      "properties": {
+        "to": { "type": "string" },
+        "message": {
+          "type": "object",
+          "properties": {
+            "subject": { "type": "string" },
+            "text": { "type": "string" },
+            "html": { "type": "string" }
+          }
+        }
+      },
+      "required": ["to", "message"]
+    },
+    "Rating": {
+      "title": "Rating",
+      "description": "Passenger rating for a driver",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "tripId": { "type": "string" },
+        "passengerId": { "type": "string" },
+        "driverId": { "type": "string" },
+        "score": { "type": "number", "minimum": 1, "maximum": 5 },
+        "comment": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "tripId", "passengerId", "driverId", "score", "timestamp"]
+    },
+    "LostItem": {
+      "title": "Lost Item",
+      "description": "Report of an item lost or found during a trip",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "tripId": { "type": "string" },
+        "reporterId": { "type": "string" },
+        "reporterRole": { "type": "string", "enum": ["passenger", "driver"] },
+        "description": { "type": "string" },
+        "status": { "type": "string", "enum": ["reported", "found", "returned"] },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "passengerId": { "type": "string" },
+        "driverId": { "type": "string" }
+      },
+      "required": ["id", "tripId", "reporterId", "description", "status", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/passengers/{uid}": { "schema": "Passenger", "description": "Passenger profiles" },
+    "/drivers/{uid}": { "schema": "Driver", "description": "Driver profiles" },
+    "/admins/{uid}": { "schema": "Admin", "description": "Administrator profiles" },
+    "/vehicles/{vehicleId}": { "schema": "Vehicle", "description": "Vehicle details" },
+    "/trips/{tripId}": { "schema": "Trip", "description": "Trip logs" },
+    "/ratings/{ratingId}": { "schema": "Rating", "description": "Driver ratings" },
+    "/incidents/{incidentId}": { "schema": "Incident", "description": "Incident reports" },
+    "/emergency_contacts/{contactId}": { "schema": "EmergencyContact", "description": "Passenger emergency contacts" },
+    "/mail/{mailId}": { "schema": "Mail", "description": "Email notifications queue" },
+    "/lost_items/{itemId}": { "schema": "LostItem", "description": "Lost and found items" }
+  }
+}

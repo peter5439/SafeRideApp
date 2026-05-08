@@ -1,0 +1,227 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Fields:
+    //   - uid: string (required)
+    //   - email: string (required)
+    //   - displayName: string
+    //   - role: string (admin, passenger, driver)
+    //   - createdAt: timestamp
+    //
+    // Collection: drivers
+    // Fields:
+    //   - uid: string (required)
+    //   - email: string (required)
+    //   - displayName: string
+    //   - verificationStatus: string (pending, verified, rejected)
+    //   - vehicleId: string
+    //   - createdAt: timestamp
+    //
+    // Collection: vehicles
+    // Fields:
+    //   - id: string (required)
+    //   - driverId: string (required)
+    //   - plateNumber: string
+    //   - model: string
+    //   - color: string
+    //
+    // Collection: trips
+    // Fields:
+    //   - id: string (required)
+    //   - passengerId: string (required)
+    //   - driverId: string (required)
+    //   - timestamp: timestamp
+    //
+    // Collection: incidents
+    // Fields:
+    //   - id: string (required)
+    //   - reporterId: string (required)
+    //   - driverId: string
+    //   - description: string
+    //   - severity: string (low, medium, high)
+    //   - status: string (open, investigating, resolved)
+    //   - timestamp: timestamp
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidEmail(email) {
+      return email is string &&
+             email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isUserAdmin() {
+      return isAuthenticated() && 
+        (request.auth.token.email == "chidolueebuka0@gmail.com" || 
+         (exists(/databases/$(database)/documents/admins/$(request.auth.uid)) && 
+          get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'admin'));
+    }
+
+    function isContactOwner(data) {
+      return isAuthenticated() && data.userId == request.auth.uid;
+    }
+
+    function isValidPassenger(data) {
+      return data.keys().hasAll(['uid', 'email', 'role']) &&
+             data.uid is string &&
+             data.email is string &&
+             data.role == 'passenger';
+    }
+
+    function isValidAdmin(data) {
+      return data.keys().hasAll(['uid', 'email', 'role']) &&
+             data.uid is string &&
+             data.email is string &&
+             data.role == 'admin';
+    }
+
+    function isValidDriver(data) {
+      return data.keys().hasAll(['uid', 'email', 'role', 'verificationStatus']) &&
+             data.uid is string && data.uid.size() < 128 &&
+             data.email is string && isValidEmail(data.email) &&
+             data.role == 'driver' &&
+             data.verificationStatus in ['pending', 'verified', 'rejected'] &&
+             (!('firstName' in data) || (data.firstName is string && data.firstName.size() < 100)) &&
+             (!('lastName' in data) || (data.lastName is string && data.lastName.size() < 100)) &&
+             (!('phoneNumber' in data) || (data.phoneNumber is string && data.phoneNumber.size() < 20)) &&
+             (!('residentialAddress' in data) || (data.residentialAddress is string && data.residentialAddress.size() < 500));
+    }
+
+    function isValidIncident(data) {
+      return data.keys().hasAll(['reporterId', 'description', 'severity', 'status']) &&
+             data.reporterId == request.auth.uid &&
+             data.severity in ['low', 'medium', 'high'] &&
+             data.status in ['open', 'investigating', 'resolved'];
+    }
+
+    function isValidEmergencyContact(data) {
+      return data.keys().hasAll(['userId', 'name', 'phoneNumber', 'email']) &&
+             data.userId == request.auth.uid &&
+             data.name is string && data.name.size() > 0 &&
+             data.phoneNumber is string && data.phoneNumber.size() > 0 &&
+             data.email is string && isValidEmail(data.email);
+    }
+
+    function isValidMail(data) {
+      return data.keys().hasAll(['to', 'message']) &&
+             (data.to is string || data.to is list) &&
+             data.message is map &&
+             data.message.keys().hasAll(['subject']);
+    }
+
+    function isValidTrip(data) {
+      return data.keys().hasAll(['passengerId', 'driverId', 'status', 'timestamp']) &&
+             data.passengerId is string &&
+             data.driverId is string &&
+             data.status in ['active', 'completed'];
+    }
+
+    function isValidRating(data) {
+      return data.keys().hasAll(['tripId', 'passengerId', 'driverId', 'score', 'timestamp']) &&
+             data.score is number && data.score >= 1 && data.score <= 5 &&
+             data.passengerId == request.auth.uid;
+    }
+
+    function isTripPassenger(tripId) {
+      return isAuthenticated() && get(/databases/$(database)/documents/trips/$(tripId)).data.passengerId == request.auth.uid;
+    }
+
+    function isValidLostItem(data) {
+      return data.keys().hasAll(['tripId', 'reporterId', 'passengerId', 'driverId', 'description', 'status', 'timestamp']) &&
+             data.reporterId == request.auth.uid &&
+             data.status in ['reported', 'found', 'returned'];
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /passengers/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isOwner(userId) && isValidPassenger(request.resource.data);
+      allow update: if isAuthenticated() && (isUserAdmin() || (isOwner(userId) && request.resource.data.role == 'passenger'));
+    }
+
+    match /admins/{userId} {
+      allow read: if isAuthenticated() && (isOwner(userId) || isUserAdmin());
+      allow create: if isAuthenticated() && isOwner(userId) && isValidAdmin(request.resource.data) && request.auth.token.email == "chidolueebuka0@gmail.com";
+      allow update: if isUserAdmin();
+    }
+
+    match /drivers/{driverId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isOwner(driverId) && isValidDriver(request.resource.data) && request.resource.data.verificationStatus == 'pending';
+      allow update: if isAuthenticated() && (
+        isUserAdmin() || 
+        (isOwner(driverId) && isValidDriver(request.resource.data) && request.resource.data.verificationStatus == resource.data.verificationStatus) ||
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rating', 'ratingCount']))
+      );
+    }
+
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (isOwner(userId) || isUserAdmin());
+      allow create: if isAuthenticated() && isOwner(userId);
+      allow update: if isAuthenticated() && (isUserAdmin() || isOwner(userId));
+    }
+
+    match /vehicles/{vehicleId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated() && (isUserAdmin() || isOwner(request.resource.data.driverId));
+    }
+
+    match /trips/{tripId} {
+      allow read: if isAuthenticated() && (resource.data.passengerId == request.auth.uid || resource.data.driverId == request.auth.uid || isUserAdmin());
+      allow create: if isAuthenticated() && request.resource.data.passengerId == request.auth.uid && isValidTrip(request.resource.data);
+      allow update: if isAuthenticated() && (
+        isUserAdmin() || 
+        (resource.data.passengerId == request.auth.uid && request.resource.data.passengerId == resource.data.passengerId)
+      );
+    }
+
+    match /ratings/{ratingId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidRating(request.resource.data) && isTripPassenger(request.resource.data.tripId);
+    }
+
+    match /incidents/{incidentId} {
+      allow read: if isAuthenticated() && (isOwner(resource.data.reporterId) || isUserAdmin());
+      allow create: if isAuthenticated() && isValidIncident(request.resource.data);
+      allow update: if isUserAdmin();
+    }
+
+    match /emergency_contacts/{contactId} {
+      allow read: if isAuthenticated() && (isContactOwner(resource.data) || isUserAdmin());
+      allow create: if isAuthenticated() && isValidEmergencyContact(request.resource.data);
+      allow update: if isAuthenticated() && isOwner(resource.data.userId) && isValidEmergencyContact(request.resource.data);
+      allow delete: if isAuthenticated() && isOwner(resource.data.userId);
+    }
+
+    match /mail/{mailId} {
+      allow create: if isAuthenticated() && isValidMail(request.resource.data);
+    }
+
+    match /lost_items/{itemId} {
+      allow read: if isAuthenticated() && (resource.data.passengerId == request.auth.uid || resource.data.driverId == request.auth.uid || isUserAdmin());
+      allow create: if isAuthenticated() && isValidLostItem(request.resource.data);
+      allow update: if isAuthenticated() && (isUserAdmin() || resource.data.passengerId == request.auth.uid || resource.data.driverId == request.auth.uid);
+    }
+  }
+}
