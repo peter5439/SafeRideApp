@@ -3,7 +3,7 @@ import {Router, RouterLink} from '@angular/router';
 import {MatIconModule} from '@angular/material/icon';
 import {CommonModule} from '@angular/common';
 import {getDb, handleFirestoreError, OperationType} from '../../../firebase';
-import {collection, query, getDocs, where, addDoc, doc, getDoc} from 'firebase/firestore';
+import {collection, query, getDocs, where, doc, getDoc} from 'firebase/firestore';
 import {AuthService} from '../../../services/auth';
 import {Html5Qrcode} from 'html5-qrcode';
 import {DriverProfile} from '../../../models/types';
@@ -143,16 +143,18 @@ export class PassengerScan implements OnInit, OnDestroy {
           // parse error, ignore it.
         }
       );
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorStr = err instanceof Error ? err.message : String(err);
       console.error("Unable to start scanner", err);
       this.isScanning.set(false);
       
-      if (err?.name === 'NotAllowedError') {
+      const errorName = (err as { name?: string })?.name;
+      if (errorName === 'NotAllowedError') {
         this.errorMessage.set('Permission denied. Please allow camera access.');
       } else if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
         this.errorMessage.set('Insecure context. Cameras require HTTPS.');
       } else {
-        this.errorMessage.set(err?.message || 'Unable to access camera.');
+        this.errorMessage.set(errorStr || 'Unable to access camera.');
       }
     }
   }
@@ -214,26 +216,13 @@ export class PassengerScan implements OnInit, OnDestroy {
       }
 
       // Get current location
-      let location = { latitude: 0, longitude: 0 };
       try {
-        const pos = await this.getCurrentPosition();
-        location = { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
+        await this.getCurrentPosition();
       } catch (locErr) {
         console.warn('Could not get location', locErr);
       }
 
-      // Record the trip
-      await addDoc(collection(getDb(), path), {
-        passengerId: user.uid,
-        passengerName: user.displayName || 'Passenger',
-        driverId: driverId,
-        driverName: driverData.displayName || 'Verified Driver',
-        timestamp: new Date().toISOString(),
-        location: location,
-        status: 'active'
-      });
-
-      this.loadingMessage.set('Trip Started!');
+      this.loadingMessage.set('Driver verified!');
       setTimeout(() => {
         this.loading.set(false);
         this.router.navigate(['/passenger/driver-details', driverId]);
