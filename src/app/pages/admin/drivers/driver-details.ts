@@ -33,6 +33,9 @@ import {AuthService} from '../../../services/auth';
           <a routerLink="/admin/passengers" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-white/5 hover:text-white transition-all">
             <mat-icon>people</mat-icon> Passengers
           </a>
+          <a routerLink="/admin/lost-items" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-white/5 hover:text-white transition-all">
+            <mat-icon>inventory_2</mat-icon> Lost Items
+          </a>
         </nav>
 
         <div class="p-6 mt-auto border-t border-white/5">
@@ -335,6 +338,37 @@ import {AuthService} from '../../../services/auth';
           </div>
         </div>
       }
+
+      <!-- Ban Modal -->
+      @if (showBanModal()) {
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div class="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div class="p-8">
+              <div class="w-16 h-16 bg-danger/10 text-danger rounded-2xl flex items-center justify-center mb-6">
+                <mat-icon class="text-3xl">block</mat-icon>
+              </div>
+              <h2 class="text-2xl font-bold text-slate-900 mb-2">Ban Driver</h2>
+              <p class="text-slate-500 mb-6 font-medium">Please provide a clear reason for restricting this driver's access for internal records.</p>
+              
+              <div class="space-y-4">
+                <div>
+                  <label for="banReason" class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Violation Description</label>
+                  <textarea 
+                    id="banReason"
+                    #reasonInput
+                    class="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-slate-700 min-h-[120px] focus:ring-2 focus:ring-danger/20 outline-none transition-all"
+                    placeholder="e.g. Safety violations reported by multiple passengers..."></textarea>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-4 mt-8">
+                <button (click)="showBanModal.set(false)" class="bg-slate-100 text-slate-600 py-4 rounded-2xl font-bold hover:bg-slate-200 transition-all">Cancel</button>
+                <button (click)="confirmBan(reasonInput.value)" class="bg-danger text-white py-4 rounded-2xl font-bold shadow-lg shadow-danger/20 hover:bg-danger-dark transition-all">Confirm Ban</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
     </div>
   `,
   styles: [`
@@ -350,6 +384,7 @@ export class AdminDriverDetails implements OnInit {
   trips = signal<Trip[]>([]);
   loading = signal(true);
   activeViewer = signal<string | null>(null);
+  showBanModal = signal(false);
 
   async ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
@@ -396,19 +431,26 @@ export class AdminDriverDetails implements OnInit {
 
     const path = `drivers/${d.uid}`;
     try {
-      await updateDoc(doc(getDb(), 'drivers', d.uid), {
+      const updateData: Partial<DriverProfile> = {
         verificationStatus: status
-      });
-      this.driver.set({ ...d, verificationStatus: status });
+      };
+      
+      if (status === 'verified') {
+        updateData.verifiedAt = new Date().toISOString();
+      }
+
+      await updateDoc(doc(getDb(), 'drivers', d.uid), updateData);
+      this.driver.set({ ...d, ...updateData } as DriverProfile);
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, path);
     }
   }
 
   async toggleBan() {
-    const reason = prompt('Please enter a reason for the ban:');
-    if (reason === null) return;
-    
+    this.showBanModal.set(true);
+  }
+
+  async confirmBan(reason: string) {
     const d = this.driver();
     if (!d) return;
 
@@ -416,17 +458,17 @@ export class AdminDriverDetails implements OnInit {
       await updateDoc(doc(getDb(), 'drivers', d.uid), {
         verificationStatus: 'banned',
         isBanned: true,
-        banReason: reason || 'Not specified'
+        banReason: reason || 'Violation of safety terms'
       });
       this.driver.set({ 
         ...d, 
         verificationStatus: 'banned', 
         isBanned: true, 
-        banReason: reason || 'Not specified' 
-      });
-      alert('Driver has been banned.');
+        banReason: reason || 'Violation of safety terms' 
+      } as DriverProfile);
+      this.showBanModal.set(false);
     } catch (error) {
-      console.error('Failed to ban driver', error);
+      handleFirestoreError(error, OperationType.UPDATE, `drivers/${d.uid}`);
     }
   }
 

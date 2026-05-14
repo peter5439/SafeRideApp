@@ -4,6 +4,14 @@ export interface UserProfile {
   displayName: string;
   role: 'admin' | 'passenger' | 'driver';
   createdAt: string;
+  phoneNumber?: string;
+  nationalId?: string;
+  profileImageUrl?: string;
+  idFrontImageUrl?: string;
+  idBackImageUrl?: string;
+  verificationStatus?: 'unverified' | 'pending' | 'verified' | 'rejected';
+  rejectionReason?: string;
+  verifiedAt?: string;
 }
 
 export interface DriverProfile {
@@ -18,6 +26,7 @@ export interface DriverProfile {
   banReason?: string;
   isBanned?: boolean; // For explicit boolean check
   createdAt: string;
+  verifiedAt?: string;
   
   rating?: number;
   ratingCount?: number;
@@ -57,6 +66,8 @@ export interface DriverProfile {
   color: string;
   year: string;
   
+  commonRoutes?: CommonRoute[];
+
   // Document URLs
   vehicleRegistrationUrl?: string;
   proofOfOwnershipUrl?: string;
@@ -80,15 +91,23 @@ export interface Vehicle {
 export interface Incident {
   id: string;
   reporterId: string;
+  reporterName?: string;
+  reporterEmail?: string;
+  reporterPhone?: string;
   driverId?: string;
+  driverName?: string;
+  tripId?: string;
   description: string;
   severity: 'low' | 'medium' | 'high';
-  status: 'open' | 'investigating' | 'resolved';
+  status: 'open' | 'investigating' | 'resolved' | 'dismissed';
   timestamp: string;
   location?: {
     latitude: number;
     longitude: number;
   };
+  adminNotes?: string;
+  resolvedAt?: string;
+  resolvedBy?: string;
 }
 
 export interface EmergencyContact {
@@ -140,4 +159,14 @@ export interface LostItem {
   driverId: string;
   passengerName?: string;
   driverName?: string;
+}
+
+export interface CommonRoute {
+  id: string;
+  from: string;
+  to: string;
+  distance: string;
+  estimatedTime: string;
+  popularity: 'High' | 'Medium' | 'Low';
+  baseFare: number;
 }

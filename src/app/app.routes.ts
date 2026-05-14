@@ -14,6 +14,8 @@ export const routes: Routes = [
       { path: 'drivers/:id', loadComponent: () => import('./pages/admin/drivers/driver-details').then(m => m.AdminDriverDetails) },
       { path: 'incidents', loadComponent: () => import('./pages/admin/incidents/incidents').then(m => m.AdminIncidents) },
       { path: 'passengers', loadComponent: () => import('./pages/admin/passengers/passengers').then(m => m.AdminPassengers) },
+      { path: 'passengers/:id', loadComponent: () => import('./pages/admin/passengers/passenger-details').then(m => m.AdminPassengerDetails) },
+      { path: 'lost-items', loadComponent: () => import('./pages/admin/lost-items/lost-items').then(m => m.AdminLostItems) },
     ]
   },
   {
@@ -33,6 +35,7 @@ export const routes: Routes = [
     children: [
       { path: 'login', loadComponent: () => import('./pages/passenger/login/login').then(m => m.PassengerLogin) },
       { path: 'home', loadComponent: () => import('./pages/passenger/home/home').then(m => m.PassengerHome) },
+      { path: 'profile', loadComponent: () => import('./pages/passenger/profile/profile').then(m => m.PassengerProfile) },
       { path: 'scan', loadComponent: () => import('./pages/passenger/scan/scan').then(m => m.PassengerScan) },
       { path: 'driver-details/:id', loadComponent: () => import('./pages/passenger/driver-details/driver-details').then(m => m.PassengerDriverDetails) },
       { path: 'emergency', loadComponent: () => import('./pages/passenger/emergency/emergency').then(m => m.PassengerEmergency) },

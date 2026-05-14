@@ -33,6 +33,9 @@ import {AuthService} from '../../../services/auth';
           <a routerLink="/admin/passengers" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-white/5 hover:text-white transition-all">
             <mat-icon>people</mat-icon> Passengers
           </a>
+          <a routerLink="/admin/lost-items" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-white/5 hover:text-white transition-all">
+            <mat-icon>inventory_2</mat-icon> Lost Items
+          </a>
         </nav>
 
         <div class="p-6 mt-auto border-t border-white/5">
@@ -143,8 +146,16 @@ import {AuthService} from '../../../services/auth';
                             <button (click)="verifyDriver(driver.uid, 'rejected')" class="p-2 bg-danger/5 text-danger rounded-lg hover:bg-danger hover:text-white transition-all" title="Reject">
                               <mat-icon class="text-sm">close</mat-icon>
                             </button>
+                          } @else if (driver.verificationStatus === 'verified') {
+                            <button (click)="toggleBan(driver)" class="p-2 bg-danger/5 text-danger rounded-lg hover:bg-danger hover:text-white transition-all" title="Ban Driver">
+                              <mat-icon class="text-sm">block</mat-icon>
+                            </button>
+                          } @else if (driver.verificationStatus === 'banned') {
+                            <button (click)="toggleUnban(driver)" class="p-2 bg-primary/10 text-primary rounded-lg hover:bg-primary hover:text-white transition-all" title="Unban Driver">
+                              <mat-icon class="text-sm">check_circle</mat-icon>
+                            </button>
                           }
-                          <button [routerLink]="['/admin/drivers', driver.uid]" class="p-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-all">
+                          <button [routerLink]="['/admin/drivers', driver.uid]" class="p-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-all" title="View Details">
                             <mat-icon class="text-sm">visibility</mat-icon>
                           </button>
                         </div>
@@ -205,8 +216,41 @@ export class AdminDrivers {
   async verifyDriver(uid: string, status: 'verified' | 'rejected') {
     const path = `drivers/${uid}`;
     try {
-      await updateDoc(doc(getDb(), 'drivers', uid), {
-        verificationStatus: status
+      const updateData: Partial<DriverProfile> = { verificationStatus: status };
+      if (status === 'verified') {
+        updateData.verifiedAt = new Date().toISOString();
+      }
+      await updateDoc(doc(getDb(), 'drivers', uid), updateData);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, path);
+    }
+  }
+
+  async toggleBan(driver: DriverProfile) {
+    const reason = prompt(`Enter reason for banning ${driver.displayName}:`);
+    if (reason === null) return;
+
+    const path = `drivers/${driver.uid}`;
+    try {
+      await updateDoc(doc(getDb(), 'drivers', driver.uid), {
+        verificationStatus: 'banned',
+        isBanned: true,
+        banReason: reason || 'Violation of terms'
+      });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, path);
+    }
+  }
+
+  async toggleUnban(driver: DriverProfile) {
+    if (!confirm(`Restore access for ${driver.displayName}?`)) return;
+
+    const path = `drivers/${driver.uid}`;
+    try {
+      await updateDoc(doc(getDb(), 'drivers', driver.uid), {
+        verificationStatus: 'verified',
+        isBanned: false,
+        banReason: null
       });
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, path);

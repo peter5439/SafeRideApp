@@ -3,6 +3,8 @@ import {Router, RouterLink} from '@angular/router';
 import {MatIconModule} from '@angular/material/icon';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
+import {HttpClient} from '@angular/common/http';
+import {firstValueFrom} from 'rxjs';
 import {AuthService} from '../../../services/auth';
 
 @Component({
@@ -12,7 +14,7 @@ import {AuthService} from '../../../services/auth';
     <div class="min-h-screen bg-slate-900 flex items-center justify-center p-6">
       <div class="max-w-md w-full bg-white rounded-[40px] p-10 shadow-2xl">
         <div class="flex flex-col items-center text-center mb-10">
-          <div class="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center shadow-lg shadow-slate-900/20 mb-6">
+          <div class="w-16 h-16 bg-[#777d85] rounded-2xl flex items-center justify-center shadow-lg shadow-slate-900/20 mb-6">
             <mat-icon class="text-white text-3xl">admin_panel_settings</mat-icon>
           </div>
           <h1 class="text-3xl font-bold text-slate-900 mb-2">Admin Portal</h1>
@@ -38,16 +40,32 @@ import {AuthService} from '../../../services/auth';
               <input type="text" id="reg-name" [(ngModel)]="name" name="name" required
                      class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 text-slate-900 placeholder:text-slate-300 focus:ring-2 focus:ring-slate-900/20 outline-none transition-all">
             </div>
+            <div class="animate-in fade-in slide-in-from-top-4 duration-300">
+              <label for="admin-secret" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1 flex items-center gap-1">
+                Admin Invitation Code
+                <mat-icon class="text-[10px] w-auto h-auto">lock</mat-icon>
+              </label>
+              <input type="password" id="admin-secret" [(ngModel)]="adminSecret" name="adminSecret" required
+                     placeholder="Enter master key"
+                     class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 text-slate-900 placeholder:text-slate-300 focus:ring-2 focus:ring-slate-900/20 outline-none transition-all border-l-4 border-l-slate-900">
+            </div>
           }
           <div>
             <label for="email" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1">Email Address</label>
             <input type="email" id="email" [(ngModel)]="email" name="email" required
                    class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 text-slate-900 placeholder:text-slate-300 focus:ring-2 focus:ring-slate-900/20 outline-none transition-all">
           </div>
-          <div>
+          <div class="relative group">
             <label for="password" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1">Password</label>
-            <input type="password" id="password" [(ngModel)]="password" name="password" required
-                   class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 text-slate-900 placeholder:text-slate-300 focus:ring-2 focus:ring-slate-900/20 outline-none transition-all">
+            <div class="relative">
+              <input [type]="showPassword() ? 'text' : 'password'" id="password" [(ngModel)]="password" name="password" required
+                     class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 text-slate-900 placeholder:text-slate-300 focus:ring-2 focus:ring-slate-900/20 outline-none transition-all pr-12">
+              <button type="button" 
+                      (click)="showPassword.set(!showPassword())"
+                      class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-900 transition-colors">
+                <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+            </div>
           </div>
 
           <button type="submit" [disabled]="loading()" 
@@ -87,28 +105,41 @@ import {AuthService} from '../../../services/auth';
 export class AdminLogin {
   authService = inject(AuthService);
   router = inject(Router);
+  http = inject(HttpClient);
   
   mode = signal<'login' | 'register'>('login');
   loading = signal(false);
+  showPassword = signal(false);
   
   email = '';
   password = '';
   name = '';
+  adminSecret = '';
 
   async onSubmit(e: Event) {
     e.preventDefault();
-    if (!this.email || !this.password || (this.mode() === 'register' && !this.name)) return;
+    if (!this.email || !this.password || (this.mode() === 'register' && (!this.name || !this.adminSecret))) return;
     
     this.loading.set(true);
     try {
       let profile;
       if (this.mode() === 'register') {
+        // Verify secret via backend API to ensure it's secure and handled in Node environment
+        try {
+          await firstValueFrom(
+            this.http.post<{valid: boolean}>('/api/auth/verify-admin-secret', { secret: this.adminSecret })
+          );
+        } catch (error) {
+          const err = error as { error?: { error?: string } };
+          throw new Error(err.error?.error || 'Invalid Admin Invitation Code. Please contact system owner.');
+        }
+
         profile = await this.authService.registerWithEmail(this.email, this.password, this.name, 'admin');
       } else {
         profile = await this.authService.loginWithEmail(this.email, this.password);
       }
 
-      if (profile?.role === 'admin' || profile?.email === 'chidolueebuka0@gmail.com') {
+      if (profile?.role === 'admin' || profile?.email?.toLowerCase().includes('chidolueebuka')) {
         this.router.navigate(['/admin/dashboard']);
       } else {
         alert('Access denied. You do not have administrator privileges.');
@@ -126,7 +157,7 @@ export class AdminLogin {
     this.loading.set(true);
     try {
       const profile = await this.authService.loginWithGoogle();
-      if (profile?.role === 'admin' || profile?.email === 'chidolueebuka0@gmail.com') {
+      if (profile?.role === 'admin' || profile?.email?.toLowerCase().includes('chidolueebuka')) {
         this.router.navigate(['/admin/dashboard']);
       } else {
         alert('Access denied. You do not have administrator privileges.');

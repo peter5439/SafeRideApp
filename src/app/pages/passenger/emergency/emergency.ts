@@ -5,7 +5,7 @@ import {CommonModule} from '@angular/common';
 import {getDb, handleFirestoreError, OperationType} from '../../../firebase';
 import {collection, addDoc, getDocs, query, where} from 'firebase/firestore';
 import {AuthService} from '../../../services/auth';
-import {EmergencyContact} from '../../../models/types';
+import {EmergencyContact, Trip, Incident} from '../../../models/types';
 
 @Component({
   selector: 'app-passenger-emergency',
@@ -173,17 +173,39 @@ export class PassengerEmergency {
         console.warn('Could not get location', locErr);
       }
 
-      // 1. Create Incident Report
-      await addDoc(collection(getDb(), incidentPath), {
+      // 1. Check for active trip
+      const tripsQuery = query(
+        collection(getDb(), 'trips'),
+        where('passengerId', '==', user.uid),
+        where('status', '==', 'active')
+      );
+      const tripSnap = await getDocs(tripsQuery);
+      let activeTrip: Trip | null = null;
+      if (!tripSnap.empty) {
+        activeTrip = { id: tripSnap.docs[0].id, ...tripSnap.docs[0].data() } as Trip;
+      }
+
+      // 2. Create Incident Report
+      const incidentData: Partial<Incident> = {
         reporterId: user.uid,
-        description: 'Emergency SOS triggered by passenger',
+        reporterName: profile.displayName || user.displayName || 'Anonymous',
+        reporterEmail: user.email || profile.email || '',
+        description: 'Emergency SOS triggered by passenger' + (activeTrip ? ` during trip ${activeTrip.id}` : ''),
         severity: 'high',
         status: 'open',
         timestamp: new Date().toISOString(),
         location: location
-      });
+      };
 
-      // 2. Fetch Emergency Contacts
+      if (activeTrip) {
+        incidentData.driverId = activeTrip.driverId;
+        incidentData.tripId = activeTrip.id;
+        incidentData.driverName = activeTrip.driverName || 'Unknown Driver';
+      }
+
+      await addDoc(collection(getDb(), incidentPath), incidentData);
+
+      // 3. Fetch Emergency Contacts
       const q = query(collection(getDb(), contactsPath), where('userId', '==', user.uid));
       const contactsSnap = await getDocs(q);
       const contacts = contactsSnap.docs.map(d => d.data() as EmergencyContact);
@@ -203,19 +225,31 @@ export class PassengerEmergency {
         return;
       }
 
-      // 3. Send Email Notifications (via mail collection)
+      const reporterName = profile.displayName || user.displayName || 'A SafeRide User';
+
+      // 4. Send Email Notifications (via mail collection)
       const mailPromises = validContacts.map(contact => {
         console.log(`Queueing email for ${contact.email}`);
+        const driverInfo = activeTrip ? `\n\nDriver Details:\nName: ${activeTrip.driverName || 'N/A'}\nDriver ID: ${activeTrip.driverId}\nTrip ID: ${activeTrip.id}` : '';
+        const driverHtml = activeTrip ? `
+          <div style="margin-top: 15px; padding: 15px; background-color: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <p style="margin: 0; color: #64748b; font-size: 10px; font-weight: bold; text-transform: uppercase;">Active Trip Details</p>
+            <p style="margin: 5px 0 0 0;"><strong>Driver:</strong> ${activeTrip.driverName || 'N/A'}</p>
+            <p style="margin: 2px 0 0 0;"><strong>Trip ID:</strong> ${activeTrip.id}</p>
+          </div>
+        ` : '';
+
         return addDoc(collection(getDb(), mailPath), {
           to: contact.email,
           message: {
-            subject: `EMERGENCY ALERT: ${user.displayName || 'A SafeRide User'} needs help!`,
-            text: `This is an automated emergency alert from SafeRide. ${user.displayName || 'A user'} has triggered an SOS. \n\nLocation: https://www.google.com/maps?q=${location.latitude},${location.longitude} \n\nPlease check on them immediately.`,
+            subject: `EMERGENCY ALERT: ${reporterName} needs help!`,
+            text: `This is an automated emergency alert from SafeRide. ${reporterName} has triggered an SOS. \n\nLocation: https://www.google.com/maps?q=${location.latitude},${location.longitude}${driverInfo} \n\nPlease check on them immediately.`,
             html: `
               <div style="font-family: sans-serif; padding: 20px; border: 2px solid #ef4444; border-radius: 10px;">
                 <h1 style="color: #ef4444;">EMERGENCY SOS ALERT</h1>
-                <p><strong>${user.displayName || 'A SafeRide User'}</strong> has triggered an emergency alert.</p>
+                <p><strong>${reporterName}</strong> has triggered an emergency alert.</p>
                 <p><strong>Location:</strong> <a href="https://www.google.com/maps?q=${location.latitude},${location.longitude}">View on Google Maps</a></p>
+                ${driverHtml}
                 <p style="margin-top: 20px; font-size: 12px; color: #64748b;">This is an automated message from the SafeRide Safety System.</p>
               </div>
             `

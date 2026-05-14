@@ -34,6 +34,9 @@ import {AuthService} from '../../../services/auth';
           <a routerLink="/admin/passengers" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-white/5 hover:text-white transition-all">
             <mat-icon>people</mat-icon> Passengers
           </a>
+          <a routerLink="/admin/lost-items" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-white/5 hover:text-white transition-all">
+            <mat-icon>inventory_2</mat-icon> Lost Items
+          </a>
         </nav>
 
         <div class="p-6 mt-auto border-t border-white/5">
@@ -103,7 +106,7 @@ import {AuthService} from '../../../services/auth';
                     <mat-icon class="text-sm">verified</mat-icon>
                   </div>
                 </div>
-                <p class="text-slate-500 text-[10px] font-bold uppercase tracking-wider mb-1">Verified</p>
+                <p class="text-slate-500 text-[10px] font-bold uppercase tracking-wider mb-1">Verified Drivers</p>
                 <h3 class="text-2xl font-bold text-slate-900">{{ stats().verifiedDrivers }}</h3>
               </div>
 
@@ -118,7 +121,7 @@ import {AuthService} from '../../../services/auth';
                     </span>
                   }
                 </div>
-                <p class="text-slate-500 text-[10px] font-bold uppercase tracking-wider mb-1">Banned</p>
+                <p class="text-slate-500 text-[10px] font-bold uppercase tracking-wider mb-1">Banned Drivers</p>
                 <h3 class="text-2xl font-bold text-slate-900">{{ stats().bannedDrivers }}</h3>
               </div>
 
@@ -140,6 +143,16 @@ import {AuthService} from '../../../services/auth';
                 </div>
                 <p class="text-slate-500 text-[10px] font-bold uppercase tracking-wider mb-1">Incidents</p>
                 <h3 class="text-2xl font-bold text-slate-900">{{ stats().openIncidents }}</h3>
+              </div>
+
+              <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100">
+                <div class="flex items-center justify-between mb-3">
+                  <div class="w-10 h-10 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
+                    <mat-icon class="text-sm">inventory_2</mat-icon>
+                  </div>
+                </div>
+                <p class="text-slate-500 text-[10px] font-bold uppercase tracking-wider mb-1">Lost Items</p>
+                <h3 class="text-2xl font-bold text-slate-900">{{ stats().lostItems }}</h3>
               </div>
             </div>
 
@@ -248,7 +261,8 @@ export class AdminDashboard {
     verifiedDrivers: 0,
     bannedDrivers: 0,
     totalPassengers: 0,
-    openIncidents: 0
+    openIncidents: 0,
+    lostItems: 0
   });
   recentIncidents = signal<Incident[]>([]);
   pendingDrivers = signal<DriverProfile[]>([]);
@@ -282,6 +296,7 @@ export class AdminDashboard {
       const driversSnap = await getDocs(collection(getDb(), 'drivers'));
       const passengersSnap = await getDocs(collection(getDb(), 'passengers'));
       const incidentsSnap = await getDocs(collection(getDb(), 'incidents'));
+      const lostItemsSnap = await getDocs(collection(getDb(), 'lost_items'));
 
       const drivers = driversSnap.docs.map(d => d.data() as DriverProfile);
       
@@ -290,7 +305,8 @@ export class AdminDashboard {
         verifiedDrivers: drivers.filter(d => d.verificationStatus === 'verified').length,
         bannedDrivers: drivers.filter(d => d.verificationStatus === 'banned').length,
         totalPassengers: passengersSnap.size,
-        openIncidents: incidentsSnap.docs.filter(i => (i.data() as { status: string })['status'] === 'open').length
+        openIncidents: incidentsSnap.docs.filter(i => (i.data() as { status: string })['status'] === 'open').length,
+        lostItems: lostItemsSnap.size
       });
     } catch (error) {
       console.error('Failed to load stats', error);

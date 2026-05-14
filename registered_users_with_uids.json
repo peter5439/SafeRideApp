@@ -1,0 +1,342 @@
+[
+  {
+    "type": "passenger",
+    "email": "p.walker1@saferide.com",
+    "password": "Password123!",
+    "firstName": "Paul",
+    "lastName": "Walker",
+    "uid": "Jr2dZa9g5SfIP82X1iHgr16Yhaq1"
+  },
+  {
+    "type": "passenger",
+    "email": "m.smith2@saferide.com",
+    "password": "Password123!",
+    "firstName": "Mary",
+    "lastName": "Smith",
+    "uid": "MRgBRtFrnpbY5O7raOOdEhJs8DI3"
+  },
+  {
+    "type": "passenger",
+    "email": "j.doe3@saferide.com",
+    "password": "Password123!",
+    "firstName": "John",
+    "lastName": "Doe",
+    "uid": "Ov1rjwWEDROIrXzj0eSS9DAiizf1"
+  },
+  {
+    "type": "passenger",
+    "email": "a.brown4@saferide.com",
+    "password": "Password123!",
+    "firstName": "Alice",
+    "lastName": "Brown",
+    "uid": "R9LZ1Hlx4oW8b190BUETSQHoxW62"
+  },
+  {
+    "type": "passenger",
+    "email": "r.wilson5@saferide.com",
+    "password": "Password123!",
+    "firstName": "Robert",
+    "lastName": "Wilson",
+    "uid": "c0N6IgbyX2bPkZrzFPuh3pvpgX93"
+  },
+  {
+    "type": "passenger",
+    "email": "e.garcia6@saferide.com",
+    "password": "Password123!",
+    "firstName": "Elena",
+    "lastName": "Garcia",
+    "uid": "ukQuhdwxF9YgiA4uzNSr77RqEII3"
+  },
+  {
+    "type": "passenger",
+    "email": "d.lee7@saferide.com",
+    "password": "Password123!",
+    "firstName": "David",
+    "lastName": "Lee",
+    "uid": "8P1SNFu8KZbBDH658LmvK8L1fS32"
+  },
+  {
+    "type": "passenger",
+    "email": "s.miller8@saferide.com",
+    "password": "Password123!",
+    "firstName": "Sarah",
+    "lastName": "Miller",
+    "uid": "QWm1IitG93P7FnX3OuyC5fnGjZx2"
+  },
+  {
+    "type": "passenger",
+    "email": "k.davis9@saferide.com",
+    "password": "Password123!",
+    "firstName": "Kevin",
+    "lastName": "Davis",
+    "uid": "UBhURYmoPNTFkvzP1iiG06zLcCX2"
+  },
+  {
+    "type": "passenger",
+    "email": "l.rodriguez10@saferide.com",
+    "password": "Password123!",
+    "firstName": "Laura",
+    "lastName": "Rodriguez",
+    "uid": "51R3u7dtoXhJahv0LL9PbC0Hcrj1"
+  },
+  {
+    "type": "passenger",
+    "email": "m.jones11@saferide.com",
+    "password": "Password123!",
+    "firstName": "Mark",
+    "lastName": "Jones",
+    "uid": "6VAth4t4s3TZaytcpCmP2980pPU2"
+  },
+  {
+    "type": "passenger",
+    "email": "c.white12@saferide.com",
+    "password": "Password123!",
+    "firstName": "Chloe",
+    "lastName": "White",
+    "uid": "J9CKKpEkDHVlSoJQAtqDSy1cQb52"
+  },
+  {
+    "type": "passenger",
+    "email": "t.taylor13@saferide.com",
+    "password": "Password123!",
+    "firstName": "Thomas",
+    "lastName": "Taylor",
+    "uid": "7JtixcrZCVMS8JA1FwOcjoRXdfY2"
+  },
+  {
+    "type": "passenger",
+    "email": "j.anderson14@saferide.com",
+    "password": "Password123!",
+    "firstName": "Jessica",
+    "lastName": "Anderson",
+    "uid": "EKlciKsXSkWhSbPq1yMsSbJtffv1"
+  },
+  {
+    "type": "passenger",
+    "email": "p.thomas15@saferide.com",
+    "password": "Password123!",
+    "firstName": "Peter",
+    "lastName": "Thomas",
+    "uid": "o1dd9rtuWJQG8HsoLd6bNqUUKnv2"
+  },
+  {
+    "type": "passenger",
+    "email": "h.jackson16@saferide.com",
+    "password": "Password123!",
+    "firstName": "Hannah",
+    "lastName": "Jackson",
+    "uid": "uVNI4M9EeNZ0LdHAbBDPBDBQMAv1"
+  },
+  {
+    "type": "passenger",
+    "email": "b.moore17@saferide.com",
+    "password": "Password123!",
+    "firstName": "Brian",
+    "lastName": "Moore",
+    "uid": "hiwnWSNsEZcPZuFa6uslol5TR562"
+  },
+  {
+    "type": "passenger",
+    "email": "a.martin18@saferide.com",
+    "password": "Password123!",
+    "firstName": "Anna",
+    "lastName": "Martin",
+    "uid": "jdbnCnWA0sR2Nzjd3HnHTqexY9j1"
+  },
+  {
+    "type": "passenger",
+    "email": "s.clark19@saferide.com",
+    "password": "Password123!",
+    "firstName": "Steven",
+    "lastName": "Clark",
+    "uid": "mctlPGjA1EUdIgBZui9Hs9gwerM2"
+  },
+  {
+    "type": "passenger",
+    "email": "m.lewis20@saferide.com",
+    "password": "Password123!",
+    "firstName": "Michelle",
+    "lastName": "Lewis",
+    "uid": "EvJ0Z0R6vXWKZJc5PYVEOENyCQF2"
+  },
+  {
+    "type": "driver",
+    "email": "driver.akin1@saferide.com",
+    "password": "DriveSafe2026!",
+    "firstName": "Akin",
+    "lastName": "Babatunde",
+    "vehicle": "Toyota Corolla (ABC-123DE)",
+    "uid": "6V4K3n1pWTN17GGrJtIenPJRU372"
+  },
+  {
+    "type": "driver",
+    "email": "driver.chi1@saferide.com",
+    "password": "DriveSafe2026!",
+    "firstName": "Chioma",
+    "lastName": "Okonkwo",
+    "vehicle": "Honda Accord (XYZ-987FG)",
+    "uid": "oRUNVgeb3cP2ZFZfCg1a8bR7vpf1"
+  },
+  {
+    "type": "driver",
+    "email": "driver.emeka1@saferide.com",
+    "password": "DriveSafe2026!",
+    "firstName": "Emeka",
+    "lastName": "Uche",
+    "vehicle": "Mazda 3 (LND-456GH)",
+    "uid": "61DD5ZJMMROZxgMgWSYPabyxw9b2"
+  },
+  {
+    "type": "driver",
+    "email": "driver.funmi1@saferide.com",
+    "password": "DriveSafe2026!",
+    "firstName": "Funmilayo",
+    "lastName": "Adeyemi",
+    "vehicle": "Nissan Sentra (KJA-111JK)",
+    "uid": "nVp3tq3pE7Z1X6vDRjQ1zqNjvZn2"
+  },
+  {
+    "type": "driver",
+    "email": "driver.ibrahim1@saferide.com",
+    "password": "DriveSafe2026!",
+    "firstName": "Ibrahim",
+    "lastName": "Musa",
+    "vehicle": "Lexus ES350 (ABJ-222LM)",
+    "uid": "ECeCFDmbPLXPN7b6NBQeQBqoQ8I3"
+  },
+  {
+    "type": "driver",
+    "email": "driver.ngoji1@saferide.com",
+    "password": "DriveSafe2026!",
+    "firstName": "Ngozi",
+    "lastName": "Ezekiel",
+    "vehicle": "Toyota Camry (EKY-333NP)",
+    "uid": "T1pJ6fhHAbeQhZNFtNRDmKayEJS2"
+  },
+  {
+    "type": "driver",
+    "email": "driver.samuel1@saferide.com",
+    "password": "DriveSafe2026!",
+    "firstName": "Samuel",
+    "lastName": "Olatunji",
+    "vehicle": "Hyundai Elantra (FKJ-444QR)",
+    "uid": "6fSmLY76mJXEcGtuxMNfR6naH193"
+  },
+  {
+    "type": "driver",
+    "email": "driver.bolanle1@saferide.com",
+    "password": "DriveSafe2026!",
+    "firstName": "Bolanle",
+    "lastName": "Shonubi",
+    "vehicle": "Kia Rio (GGE-555ST)",
+    "uid": "B03iGRbxv2PNmArSvXXNt1S4tgI3"
+  },
+  {
+    "type": "driver",
+    "email": "driver.yusuf1@saferide.com",
+    "password": "DriveSafe2026!",
+    "firstName": "Yusuf",
+    "lastName": "Salami",
+    "vehicle": "Ford Focus (APP-666UV)",
+    "uid": "5LBI0tCDo2PhmSYM8i4nG3uW4Oh2"
+  },
+  {
+    "type": "driver",
+    "email": "driver.zainab1@saferide.com",
+    "password": "DriveSafe2026!",
+    "firstName": "Zainab",
+    "lastName": "Bello",
+    "vehicle": "Chevrolet Malibu (SMK-777WX)",
+    "uid": "KN7AfwlfPxTjWkbkjy8mBdEPp522"
+  },
+  {
+    "type": "driver",
+    "email": "driver.oscar1@saferide.com",
+    "password": "DriveSafe2026!",
+    "firstName": "Oscar",
+    "lastName": "Nwosu",
+    "vehicle": "Toyota Venza (LSD-888YZ)",
+    "uid": "aNHEYu6cPAZEt4pc0ASETLnhe2m2"
+  },
+  {
+    "type": "driver",
+    "email": "driver.joy1@saferide.com",
+    "password": "DriveSafe2026!",
+    "firstName": "Joy",
+    "lastName": "Amadi",
+    "vehicle": "Honda Civic (KTU-999AB)",
+    "uid": "LAwv9Q0by6g0HHJvYoX0Iyvy3zJ2"
+  },
+  {
+    "type": "driver",
+    "email": "driver.victor1@saferide.com",
+    "password": "DriveSafe2026!",
+    "firstName": "Victor",
+    "lastName": "Effiong",
+    "vehicle": "Mercedes C300 (MUS-101CD)",
+    "uid": "61eqa4HftkYuTvXHJPJJVodpxB83"
+  },
+  {
+    "type": "driver",
+    "email": "driver.faith1@saferide.com",
+    "password": "DriveSafe2026!",
+    "firstName": "Faith",
+    "lastName": "Idris",
+    "vehicle": "Volkswagen Golf (KRD-202EF)",
+    "uid": "vb7PeKoPaoO4Rjr6io7GKnzFEMJ2"
+  },
+  {
+    "type": "driver",
+    "email": "driver.sunday1@saferide.com",
+    "password": "DriveSafe2026!",
+    "firstName": "Sunday",
+    "lastName": "Okon",
+    "vehicle": "Toyota Avalon (IKP-303GH)",
+    "uid": "51UeQPZTJwOdlX5LRkYejHOuoGk2"
+  },
+  {
+    "type": "driver",
+    "email": "driver.abigail1@saferide.com",
+    "password": "DriveSafe2026!",
+    "firstName": "Abigail",
+    "lastName": "Duru",
+    "vehicle": "Peugeot 301 (JJJ-404IJ)",
+    "uid": "exL83i1udNWDtfkireTqzyU4XTJ3"
+  },
+  {
+    "type": "driver",
+    "email": "driver.isaac1@saferide.com",
+    "password": "DriveSafe2026!",
+    "firstName": "Isaac",
+    "lastName": "Adebayo",
+    "vehicle": "Range Rover Evoque (BDG-505KL)",
+    "uid": "WSMzdi0A3eep1odotMYKN8VsFm12"
+  },
+  {
+    "type": "driver",
+    "email": "driver.esther1@saferide.com",
+    "password": "DriveSafe2026!",
+    "firstName": "Esther",
+    "lastName": "Ogar",
+    "vehicle": "Toyota RAV4 (KRD-606MN)",
+    "uid": "tJk6z9z5I5aWltj5g7g4mqo4hPJ3"
+  },
+  {
+    "type": "driver",
+    "email": "driver.peter1@saferide.com",
+    "password": "DriveSafe2026!",
+    "firstName": "Peter",
+    "lastName": "Obi",
+    "vehicle": "Honda CR-V (AKD-707OP)",
+    "uid": "XrkLyPj8std6fgJxo0iMcfxWJlu1"
+  },
+  {
+    "type": "driver",
+    "email": "driver.cynthia1@saferide.com",
+    "password": "DriveSafe2026!",
+    "firstName": "Cynthia",
+    "lastName": "Umar",
+    "vehicle": "Lexus RX350 (EPE-808QR)",
+    "uid": "imoqmt9y4DVXhBOR3ih8qezs8xt2"
+  }
+]

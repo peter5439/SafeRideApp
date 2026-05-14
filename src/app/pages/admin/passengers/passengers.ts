@@ -4,7 +4,7 @@ import {MatIconModule} from '@angular/material/icon';
 import {CommonModule} from '@angular/common';
 import {getDb, handleFirestoreError, OperationType} from '../../../firebase';
 import {collection, onSnapshot, query, orderBy, Unsubscribe} from 'firebase/firestore';
-import {UserProfile} from '../../../services/auth';
+import {UserProfile} from '../../../models/types';
 import {AuthService} from '../../../services/auth';
 
 @Component({
@@ -32,6 +32,9 @@ import {AuthService} from '../../../services/auth';
           </a>
           <a routerLink="/admin/passengers" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary text-white font-bold">
             <mat-icon>people</mat-icon> Passengers
+          </a>
+          <a routerLink="/admin/lost-items" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-white/5 hover:text-white transition-all">
+            <mat-icon>inventory_2</mat-icon> Lost Items
           </a>
         </nav>
 
@@ -77,22 +80,37 @@ import {AuthService} from '../../../services/auth';
                   <tr class="bg-slate-50/50">
                     <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Passenger</th>
                     <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Email</th>
+                    <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
                     <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Joined</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50">
                   @for (passenger of passengers(); track passenger.uid) {
-                    <tr class="hover:bg-slate-50/50 transition-colors">
+                    <tr [routerLink]="['/admin/passengers', passenger.uid]" class="hover:bg-slate-50/50 transition-colors cursor-pointer group">
                       <td class="px-6 py-4">
                         <div class="flex items-center gap-3">
-                          <div class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-600 font-bold">
-                            {{ passenger.displayName.charAt(0) }}
+                          <div class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-600 font-bold group-hover:bg-primary group-hover:text-white transition-colors overflow-hidden">
+                            @if (passenger.profileImageUrl) {
+                              <img [src]="passenger.profileImageUrl" class="w-full h-full object-cover" alt="Profile">
+                            } @else {
+                              {{ passenger.displayName.charAt(0) }}
+                            }
                           </div>
                           <p class="text-sm font-bold text-slate-900">{{ passenger.displayName }}</p>
                         </div>
                       </td>
                       <td class="px-6 py-4 text-sm text-slate-600">{{ passenger.email }}</td>
-                      <td class="px-6 py-4 text-xs text-slate-400">{{ passenger.createdAt | date:'mediumDate' }}</td>
+                      <td class="px-6 py-4">
+                        <span [class]="'px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ' + getStatusClass(passenger.verificationStatus)">
+                          {{ passenger.verificationStatus || 'unverified' }}
+                        </span>
+                      </td>
+                      <td class="px-6 py-4">
+                        <div class="flex items-center justify-between">
+                          <span class="text-xs text-slate-400">{{ passenger.createdAt | date:'mediumDate' }}</span>
+                          <mat-icon class="text-slate-200 group-hover:text-primary transition-colors">chevron_right</mat-icon>
+                        </div>
+                      </td>
                     </tr>
                   } @empty {
                     <tr>
@@ -138,6 +156,15 @@ export class AdminPassengers {
     if (this.unsubscribe) {
       this.unsubscribe();
       this.unsubscribe = null;
+    }
+  }
+
+  getStatusClass(status?: string) {
+    switch (status) {
+      case 'verified': return 'bg-green-100 text-green-700';
+      case 'pending': return 'bg-amber-100 text-amber-700';
+      case 'rejected': return 'bg-danger/10 text-danger';
+      default: return 'bg-slate-100 text-slate-700';
     }
   }
 }

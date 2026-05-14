@@ -108,8 +108,15 @@ import {DriverProfile, Vehicle} from '../../../models/types';
                   </div>
                   <div>
                     <label for="password" class="block text-sm font-bold text-slate-700 mb-2">Password</label>
-                    <input type="password" id="password" name="password" [(ngModel)]="formData.password" required
-                           class="w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all">
+                    <div class="relative">
+                      <input [type]="showPassword() ? 'text' : 'password'" id="password" name="password" [(ngModel)]="formData.password" required
+                             class="w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all pr-12">
+                      <button type="button" 
+                              (click)="showPassword.set(!showPassword())"
+                              class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-primary transition-colors">
+                        <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                      </button>
+                    </div>
                   </div>
                 }
 
@@ -532,6 +539,7 @@ export class DriverRegister implements OnInit {
   authService = inject(AuthService);
   router = inject(Router);
   loading = signal(false);
+  showPassword = signal(false);
   checkingRegistration = signal(true);
   currentStep = signal(1);
   stepTitles = [

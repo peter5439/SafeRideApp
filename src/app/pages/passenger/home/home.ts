@@ -18,11 +18,31 @@ import {Trip} from '../../../models/types';
           <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-sm">
             <mat-icon class="text-white">verified_user</mat-icon>
           </div>
-          <span class="font-display font-bold text-xl tracking-tight">SafeRide</span>
+          <div class="flex flex-col">
+            <span class="font-display font-bold text-lg tracking-tight leading-tight">SafeRide</span>
+            @if (authService.profile()?.verificationStatus === 'verified') {
+              <div class="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest text-green-600">
+                <mat-icon class="text-[10px] w-[10px] h-[10px]">verified</mat-icon> Verified
+              </div>
+            } @else {
+              <div class="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest text-slate-400">
+                <mat-icon class="text-[10px] w-[10px] h-[10px]">help_outline</mat-icon> Unverified
+              </div>
+            }
+          </div>
         </div>
-        <button (click)="authService.logout()" class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition-colors">
-          <mat-icon>logout</mat-icon>
-        </button>
+        <div class="flex items-center gap-3">
+          <a routerLink="/passenger/profile" class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary hover:bg-primary/20 transition-colors">
+            @if (authService.profile()?.profileImageUrl) {
+              <img [src]="authService.profile()?.profileImageUrl" class="w-full h-full object-cover rounded-full" alt="Profile">
+            } @else {
+              <mat-icon>person</mat-icon>
+            }
+          </a>
+          <button (click)="authService.logout()" class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition-colors">
+            <mat-icon>logout</mat-icon>
+          </button>
+        </div>
       </header>
 
       <main class="flex-1 p-6 max-w-md mx-auto w-full">
@@ -45,10 +65,52 @@ import {Trip} from '../../../models/types';
         }
 
         <!-- Welcome Section -->
-        <section class="mb-8">
-          <h1 class="text-2xl font-bold text-slate-900 mb-2">Hello, {{ authService.profile()?.displayName || 'Passenger' }}!</h1>
-          <p class="text-slate-500">Your safety is our priority. Scan a driver's QR code to begin.</p>
+        <section class="mb-8 flex items-center justify-between">
+          <div>
+            <h1 class="text-2xl font-bold text-slate-900 mb-2">Hello, {{ authService.profile()?.displayName || 'Passenger' }}!</h1>
+            <p class="text-slate-500">Your safety is our priority.</p>
+          </div>
+          @if (authService.profile()?.verificationStatus !== 'verified') {
+            <a routerLink="/passenger/profile" class="bg-amber-100 text-amber-700 w-12 h-12 rounded-2xl flex items-center justify-center animate-pulse">
+              <mat-icon>priority_high</mat-icon>
+            </a>
+          }
         </section>
+
+        <!-- Verification Notice -->
+        @if (authService.profile()?.verificationStatus === 'unverified') {
+          <div class="mb-8 p-4 bg-primary/5 border border-primary/10 rounded-2xl flex gap-4 items-center">
+             <div class="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary flex-shrink-0">
+               <mat-icon>shield</mat-icon>
+             </div>
+             <div class="flex-1">
+               <h3 class="text-xs font-bold text-slate-900 mb-1">Verify Your Identity</h3>
+               <p class="text-[10px] text-slate-500 mb-2">Build trust and access premium safety features.</p>
+               <a routerLink="/passenger/profile" class="text-[10px] font-black uppercase tracking-widest text-primary hover:underline">Get Started</a>
+             </div>
+          </div>
+        } @else if (authService.profile()?.verificationStatus === 'pending') {
+          <div class="mb-8 p-4 bg-amber-50 border border-amber-100 rounded-2xl flex gap-4 items-center">
+             <div class="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-600 flex-shrink-0">
+               <mat-icon>schedule</mat-icon>
+             </div>
+             <div class="flex-1">
+               <h3 class="text-xs font-bold text-slate-900 mb-1">Verification Processing</h3>
+               <p class="text-[10px] text-slate-500">Our team is reviewing your documents.</p>
+             </div>
+          </div>
+        } @else if (authService.profile()?.verificationStatus === 'rejected') {
+          <div class="mb-8 p-4 bg-danger/5 border border-danger/10 rounded-2xl flex gap-4 items-center">
+             <div class="w-12 h-12 bg-danger/10 rounded-2xl flex items-center justify-center text-danger flex-shrink-0">
+               <mat-icon>error_outline</mat-icon>
+             </div>
+             <div class="flex-1">
+               <h3 class="text-xs font-bold text-slate-900 mb-1">Verification Rejected</h3>
+               <p class="text-[10px] text-slate-500 mb-2">Check details and resubmit documents.</p>
+               <a routerLink="/passenger/profile" class="text-[10px] font-black uppercase tracking-widest text-danger hover:underline">View Reason</a>
+             </div>
+          </div>
+        }
 
         <!-- Primary CTA -->
         <div class="mb-10">

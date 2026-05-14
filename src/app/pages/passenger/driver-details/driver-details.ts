@@ -60,6 +60,36 @@ import {FormsModule} from '@angular/forms';
               </div>
             </div>
           </div>
+          
+          <!-- Personalized Common Routes -->
+          @if ((driver()?.commonRoutes || []).length > 0) {
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 mb-6">
+              <h3 class="font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <mat-icon class="text-primary">trending_up</mat-icon> Driver's Common Routes
+              </h3>
+              <div class="space-y-3">
+                @for (route of driver()?.commonRoutes; track route.id) {
+                  <div class="bg-slate-50 border border-slate-100 p-4 rounded-2xl flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                      <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-primary shadow-sm">
+                        <mat-icon>route</mat-icon>
+                      </div>
+                      <div class="text-left">
+                        <p class="text-xs font-bold text-slate-900">{{ route.from }} → {{ route.to }}</p>
+                        <div class="flex items-center gap-2 mt-0.5">
+                          <span class="text-[9px] text-slate-400 font-mono">{{ route.distance || 'Varies' }} • {{ route.estimatedTime }}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="text-right">
+                      <p class="text-xs font-bold text-slate-900">₦{{ route.baseFare }}</p>
+                      <p class="text-[8px] font-black uppercase tracking-widest text-slate-400">Price</p>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
 
           <!-- Vehicle Details Card -->
           <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 mb-8">

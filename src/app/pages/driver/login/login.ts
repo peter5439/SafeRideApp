@@ -37,10 +37,17 @@ import {AuthService} from '../../../services/auth';
             <input type="email" id="email" [(ngModel)]="email" name="email" required
                    class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 text-slate-900 placeholder:text-slate-300 focus:ring-2 focus:ring-primary/20 outline-none transition-all">
           </div>
-          <div>
+          <div class="relative group">
             <label for="password" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1">Password</label>
-            <input type="password" id="password" [(ngModel)]="password" name="password" required
-                   class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 text-slate-900 placeholder:text-slate-300 focus:ring-2 focus:ring-primary/20 outline-none transition-all">
+            <div class="relative">
+              <input [type]="showPassword() ? 'text' : 'password'" id="password" [(ngModel)]="password" name="password" required
+                     class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 text-slate-900 placeholder:text-slate-300 focus:ring-2 focus:ring-primary/20 outline-none transition-all pr-12">
+              <button type="button" 
+                      (click)="showPassword.set(!showPassword())"
+                      class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-primary transition-colors">
+                <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+            </div>
           </div>
 
           <button type="submit" [disabled]="loading()" 
@@ -90,6 +97,7 @@ export class DriverLogin {
   
   mode = signal<'login'>('login');
   loading = signal(false);
+  showPassword = signal(false);
   
   email = '';
   password = '';

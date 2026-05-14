@@ -12,17 +12,27 @@ const browserDistFolder = join(import.meta.dirname, '../browser');
 const app = express();
 const angularApp = new AngularNodeAppEngine();
 
-/**
- * Example Express Rest API endpoints can be defined here.
- * Uncomment and define endpoints as necessary.
- *
- * Example:
- * ```ts
- * app.get('/api/{*splat}', (req, res) => {
- *   // Handle API request
- * });
- * ```
- */
+app.use(express.json());
+
+app.get('/api/ping', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+app.post('/api/auth/verify-admin-secret', (req, res) => {
+  const { secret } = req.body;
+  const adminSecret = process.env['ADMIN_SECRET_KEY'];
+  
+  if (!adminSecret) {
+    console.error('ADMIN_SECRET_KEY is not defined in environment variables');
+    return res.status(500).json({ error: 'Admin registration is currently unavailable.' });
+  }
+  
+  if (secret === adminSecret) {
+    return res.json({ valid: true });
+  } else {
+    return res.status(401).json({ valid: false, error: 'Invalid admin invitation code' });
+  }
+});
 
 /**
  * Serve static files from /browser

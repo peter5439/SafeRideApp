@@ -301,7 +301,8 @@ export class RideInProgress implements OnInit, OnDestroy {
   async submitReport(reason: string) {
     const t = this.trip();
     const u = this.authService.user();
-    if (!t || !u) return;
+    const profile = this.authService.profile();
+    if (!t || !u || !profile) return;
 
     try {
       const incidentId = `report_${Math.random().toString(36).substring(2, 9)}`;
@@ -313,7 +314,10 @@ export class RideInProgress implements OnInit, OnDestroy {
         transaction.set(doc(getDb(), 'incidents', incidentId), {
           id: incidentId,
           reporterId: u.uid,
+          reporterName: profile.displayName || u.displayName || 'Anonymous',
+          reporterEmail: u.email || profile.email || '',
           driverId: t.driverId,
+          driverName: t.driverName || 'Unknown Driver',
           tripId: t.id,
           description: `Reported for: ${reason}`,
           severity: 'medium',

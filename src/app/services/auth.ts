@@ -12,14 +12,8 @@ import {
   updateProfile
 } from 'firebase/auth';
 import {doc, getDoc, setDoc} from 'firebase/firestore';
-
-export interface UserProfile {
-  uid: string;
-  email: string;
-  displayName: string;
-  role: 'admin' | 'passenger' | 'driver';
-  createdAt: string;
-}
+import {UserProfile} from '../models/types';
+import {handleFirestoreError, OperationType} from '../firebase';
 
 @Injectable({
   providedIn: 'root'
@@ -57,13 +51,13 @@ export class AuthService {
 
   private isLoggingIn = false;
 
-  async loginWithGoogle() {
+  async loginWithGoogle(role?: 'passenger' | 'driver' | 'admin') {
     if (this.isLoggingIn) return null;
     this.isLoggingIn = true;
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(getAuthService(), provider);
-      await this.ensureProfile(result.user);
+      await this.ensureProfile(result.user, role);
       await this.fetchProfile(result.user.uid);
       return this.profile();
     } catch (error: unknown) {
@@ -113,16 +107,19 @@ export class AuthService {
       try {
         await setDoc(doc(getDb(), collectionName, result.user.uid), newProfile);
       } catch (firestoreErr) {
-        console.error('Firestore profile creation failed:', firestoreErr);
-        // If profile creation fails, we should probably delete the auth user or at least inform the user
+        handleFirestoreError(firestoreErr, OperationType.WRITE, `${collectionName}/${result.user.uid}`);
         throw new Error('Profile creation failed. Please contact support.');
       }
       
       this.profile.set(newProfile as unknown as UserProfile);
       return newProfile as unknown as UserProfile;
     } catch (error: unknown) {
+      if (error instanceof Error && error.message.includes('authInfo')) {
+        throw error;
+      }
       console.error('Registration failed', error);
-      const err = error as { code?: string };
+      const err = error as { code?: string, message?: string };
+      
       if (err.code === 'auth/email-already-in-use') {
         throw new Error('This email is already registered. Please login instead.');
       }
@@ -132,7 +129,11 @@ export class AuthService {
       if (err.code === 'auth/invalid-email') {
         throw new Error('Invalid email address.');
       }
-      throw error;
+      if (err.code === 'auth/network-request-failed') {
+        throw new Error('Network error. Please check your internet connection and try again.');
+      }
+      
+      throw new Error(err.message || 'Registration failed');
     }
   }
 
@@ -143,7 +144,14 @@ export class AuthService {
       return this.profile();
     } catch (error) {
       console.error('Email login failed', error);
-      throw error;
+      const err = error as { code?: string, message?: string };
+      if (err.code === 'auth/network-request-failed') {
+        throw new Error('Network error. Please check your internet connection and try again.');
+      }
+      if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+        throw new Error('Invalid email or password.');
+      }
+      throw new Error(err.message || 'Login failed');
     }
   }
 
@@ -154,7 +162,10 @@ export class AuthService {
       let profile = this.profile();
 
       if (!currentUser) {
-        profile = await this.loginWithGoogle();
+        profile = await this.loginWithGoogle(targetRole);
+      } else if (!profile) {
+        // User is logged in to Auth but has no Firestore profile
+        profile = await this.ensureProfile(currentUser, targetRole);
       }
 
       if (profile) {
@@ -167,7 +178,13 @@ export class AuthService {
     }
   }
 
-  async navigateAfterLogin(profile: UserProfile, targetRole?: 'passenger' | 'driver' | 'admin') {
+  async navigateAfterLogin(profile: UserProfile | null, targetRole?: 'passenger' | 'driver' | 'admin') {
+    if (!profile) {
+      console.warn('Cannot navigate: No user profile found.');
+      alert('Your account profile could not be found. Please contact support or try logging in again.');
+      return;
+    }
+
     if (this.redirectUrl) {
       const url = this.redirectUrl;
       this.redirectUrl = null;
@@ -175,7 +192,7 @@ export class AuthService {
       return;
     }
 
-    const isAdmin = profile.role === 'admin' || profile.email === 'chidolueebuka0@gmail.com';
+    const isAdmin = profile.role === 'admin' || profile.email.toLowerCase().includes('chidolueebuka');
     
     // Admins can go anywhere
     if (isAdmin) {
@@ -203,9 +220,17 @@ export class AuthService {
     await this.router.navigate(['/']);
   }
 
+  async checkAuth() {
+    const user = this.user();
+    if (user) {
+      await this.fetchProfile(user.uid);
+    }
+    return this.profile();
+  }
+
   isAdmin() {
     const p = this.profile();
-    return p?.role === 'admin' || p?.email === 'chidolueebuka0@gmail.com';
+    return p?.role === 'admin' || p?.email.toLowerCase().includes('chidolueebuka');
   }
 
   private async fetchProfile(uid: string) {
@@ -218,12 +243,10 @@ export class AuthService {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           const data = docSnap.data() as UserProfile;
-          // Force admin role if email matches
-          if (data.email === 'chidolueebuka0@gmail.com' && col !== 'admins') {
-            // Move to admins collection if needed
+          // Force admin role if email matches pattern
+          if (data.email.toLowerCase().includes('chidolueebuka') && col !== 'admins') {
             data.role = 'admin';
             await setDoc(doc(getDb(), 'admins', uid), data);
-            // Optional: delete from old collection
             this.profile.set(data);
             return;
           }
@@ -231,6 +254,21 @@ export class AuthService {
           return;
         }
       }
+
+      // If we reach here, profile is missing. 
+      // check if it's one of our bulk-registered users to auto-heal
+      const user = this.user();
+      if (user && user.email) {
+        const email = user.email.toLowerCase();
+        if (email.startsWith('driver.') || email.includes('p.walker1') || email.includes('m.smith2')) {
+          console.log('Auto-healing missing profile for bulk user:', email);
+          const role = (email.startsWith('driver.') ? 'driver' : 'passenger') as 'driver' | 'passenger';
+          const profile = await this.ensureProfile(user, role);
+          this.profile.set(profile);
+          return;
+        }
+      }
+
       this.profile.set(null);
     } catch (err) {
       console.error('fetchProfile failed:', err);
@@ -238,7 +276,7 @@ export class AuthService {
     }
   }
 
-  private async ensureProfile(user: FirebaseUser) {
+  private async ensureProfile(user: FirebaseUser, requestedRole?: 'passenger' | 'driver' | 'admin') {
     // Check if profile exists in any collection
     const collections = ['admins', 'drivers', 'passengers'];
     let existingProfile = null;
@@ -252,27 +290,36 @@ export class AuthService {
     }
     
     if (!existingProfile) {
-      const isAdmin = user.email === 'chidolueebuka0@gmail.com';
-      const role = isAdmin ? 'admin' : 'passenger';
+      const isAdmin = user.email?.toLowerCase().includes('chidolueebuka');
+      const role = isAdmin ? 'admin' : (requestedRole || 'passenger');
       const collectionName = this.getCollectionForRole(role);
       
       const newProfile: Record<string, unknown> = {
         uid: user.uid,
         email: user.email || '',
-        displayName: user.displayName || '',
+        displayName: user.displayName || user.email?.split('@')[0] || 'User',
         role: role,
         createdAt: new Date().toISOString()
       };
 
+      if (role === 'driver') {
+        newProfile['verificationStatus'] = 'pending';
+        newProfile['rating'] = 5.0;
+        newProfile['totalRatings'] = 0;
+      }
+
       await setDoc(doc(getDb(), collectionName, user.uid), newProfile);
-      this.profile.set(newProfile as unknown as UserProfile);
+      const profile = newProfile as unknown as UserProfile;
+      this.profile.set(profile);
+      return profile;
     } else {
       // If profile exists but role is wrong for the admin email, fix it
-      if (user.email === 'chidolueebuka0@gmail.com' && existingProfile.role !== 'admin') {
+      if (user.email?.toLowerCase().includes('chidolueebuka') && existingProfile.role !== 'admin') {
         existingProfile.role = 'admin';
         await setDoc(doc(getDb(), 'admins', user.uid), existingProfile);
         this.profile.set(existingProfile);
       }
+      return existingProfile;
     }
   }
 }
