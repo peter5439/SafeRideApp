@@ -6,6 +6,7 @@
     "start": "ng serve",
     "dev": "cross-env ng serve --port=3000 --host=0.0.0.0 --define=\"GEMINI_API_KEY=\\'${GEMINI_API_KEY}\\'\" ${DISABLE_HMR:+--live-reload=false}",
     "build": "ng build",
+    "build:netlify": "ng build && cp dist/app/browser/index.csr.html dist/app/browser/index.html || true",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint",
